@@ -8,7 +8,30 @@
 {% extends 'base.html' %}
 
 {% block content %}
-home!
+{% for project in projects.all %}
+<div class="row pt-3">
+    <div class="col-2" onclick="window.location='{% url 'detail' project.id %}';" style="cursor: pointer;">
+        <img src="{{ project.icon.url }}" class="img-fluid"/>
+    </div>
+    <div class="col-6" onclick="window.location='{% url 'detail' project.id %}';" style="cursor: pointer;">
+        <h1>{{ project.title}}</h1>
+        <p>{{ project.summary }}</p>
+    </div>
+    <div class="col-4">
+        <a href="javascript:{document.getElementById('upvote{{ project.id }}').submit()}">
+            <button class="btn btn-primary btn-lg btn-block">
+                <span class="oi oi-caret-top"></span>
+                Upvote {{ project.votes_total }}
+            </button>
+        </a>
+    </div>
+</div>
+
+<form id="upvote{{ project.id }}" method="POST" action="{% url 'upvote' project.id %}">
+    {% csrf_token %}
+    <input type="hidden"/>
+</form>
+{% endfor %}
 
 {% endblock %}
 </body>

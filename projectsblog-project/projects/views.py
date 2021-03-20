@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Project
 from django.utils import timezone
@@ -7,10 +7,11 @@ from django.utils import timezone
 
 
 def home(request):
-    return render(request, 'projects/home.html')
+    projects = Project.objects
+    return render(request, 'projects/home.html', {'projects': projects})
 
 
-@login_required
+@login_required(login_url="/accounts/signup")
 def create(request):
     if request.method == 'POST':
         if request.POST['title'] and request.POST['body'] and request.POST['url'] and request.FILES['icon'] and request.FILES['image']:
@@ -26,8 +27,22 @@ def create(request):
             project.pub_date = timezone.datetime.now()
             project.user = request.user
             project.save()
-            return redirect('home')
+            return redirect('/projects/' + str(project.id))
         else:
             return render(request, 'projects/create.html', {'error': 'All fields are required'})
     else:
         return render(request, 'projects/create.html')
+
+
+def detail(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    return render(request, 'projects/detail.html', {'project': project})
+
+
+@login_required(login_url="/accounts/signup")
+def upvote(request, project_id):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=project_id)
+        project.votes_total += 1
+        project.save()
+        return redirect('/projects/' + str(project.id))
