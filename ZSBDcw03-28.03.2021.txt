@@ -1,0 +1,82 @@
+********************************** 1 **********************************
+DECLARE
+	numer_max NUMBER(10):=0;
+    v_name departments.department_name%TYPE;
+BEGIN
+    SELECT MAX(department_id) INTO numer_max FROM departments;
+    v_name := 'EDUCATION';
+    numer_max:=numer_max+10;
+    INSERT INTO Departments VALUES(numer_max,v_name,null,null);
+	DBMS_OUTPUT.PUT_LINE('Maksymalny numer departamentu wynosi '||numer_max);
+END;
+
+********************************** 1 **********************************
+********************************** 2 **********************************
+DECLARE
+	numer_max NUMBER(10):=0;
+    v_name departments.department_name%TYPE;
+    v_location_id departments.location_id%TYPE;
+BEGIN
+    SELECT MAX(department_id) INTO numer_max FROM departments;
+    DBMS_OUTPUT.PUT_LINE('Maksymalny numer departamentu wynosi '||numer_max);
+    v_name := 'EDUCATION';
+    numer_max:=numer_max+10;
+    INSERT INTO Departments VALUES(numer_max,v_name,null,null);
+	v_location_id:=3000;
+    UPDATE departments SET location_id = v_location_id WHERE department_id=numer_max;
+END;
+********************************** 2 **********************************
+********************************** 3 **********************************
+DECLARE
+	i NUMBER(3):=1;
+    v_col1 nowa.column1%TYPE;
+BEGIN
+    v_col1:='';
+    WHILE i<=10
+	LOOP
+		IF i <> 4 AND i <> 6 THEN
+        v_col1:=v_col1 || TO_CHAR(i);
+        END IF;
+		i:=i+1;
+	END LOOP;
+    DBMS_OUTPUT.PUT_LINE('v col jest rowne '||v_col1);
+    INSERT INTO nowa VALUES(v_col1);
+END;
+********************************** 3 **********************************
+********************************** 4 **********************************
+DECLARE
+	v_coutry_rec countries%ROWTYPE;
+    CURSOR c1 IS SELECT * FROM countries WHERE country_id='CA';
+BEGIN
+    OPEN c1;
+    FETCH c1 INTO v_coutry_rec;
+    close c1;
+    DBMS_OUTPUT.PUT_LINE('Country name: '||v_coutry_rec.country_name||', region code: '||v_coutry_rec.region_id);
+END;
+********************************** 4 **********************************
+********************************** 7 **********************************
+DECLARE
+	v_wynagrodzenie_rec employees%ROWTYPE;
+    CURSOR wynagrodzenie IS SELECT * FROM employees WHERE department_id='50';
+    v_salary employees.salary%TYPE;
+    v_department_id employees.department_id%TYPE;
+BEGIN
+    OPEN wynagrodzenie;
+    LOOP
+        FETCH wynagrodzenie INTO v_wynagrodzenie_rec;
+        v_salary:= v_wynagrodzenie_rec.salary;
+        v_department_id:= v_wynagrodzenie_rec.department_id;
+        IF v_department_id IS NOT NULL THEN
+            IF v_salary > 3100 THEN
+                DBMS_OUTPUT.PUT_LINE(v_wynagrodzenie_rec.last_name||', nie dawac podwyzki');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE(v_wynagrodzenie_rec.last_name||', dac podwyzke');
+            END IF;
+        END IF;
+    END LOOP;
+    close wynagrodzenie;
+END;
+********************************** 7 **********************************
+********************************** 8 **********************************
+
+********************************** 8 **********************************
