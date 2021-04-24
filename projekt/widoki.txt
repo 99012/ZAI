@@ -1,0 +1,31 @@
+CREATE OR REPLACE VIEW orch_details_view
+  (orchard_id,
+   orchard_name,
+   region,
+   tree_id,
+   tree_name,
+   tree_type,
+   fruit_id,
+   fruit_name,
+   kcal,
+   price_kg)
+AS SELECT
+  o.orchard_id, 
+  o.orchard_name, 
+  o.region, 
+  t.tree_id,
+  t.tree_name,
+  t.tree_type,
+  f.fruit_id,
+  f.fruit_name,
+  f.kcal,
+  f.price_kg
+FROM
+  orchards o,
+  trees t,
+  fruits f
+WHERE o.orchard_id = t.tree_id
+  AND t.fruit_id = f.fruit_id
+WITH READ ONLY;
+
+COMMIT;

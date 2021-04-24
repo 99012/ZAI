@@ -1,0 +1,43 @@
+DROP TABLE orchards	CASCADE CONSTRAINTS;
+DROP TABLE trees	CASCADE CONSTRAINTS;
+DROP TABLE fruits	CASCADE CONSTRAINTS;
+
+CREATE TABLE fruits
+    (fruit_id NUMBER CONSTRAINT  fruit_id_nn NOT NULL,
+    fruit_name VARCHAR2(25),
+	kcal NUMBER(8,2),
+	price_kg NUMBER(8,2));
+
+CREATE UNIQUE INDEX fruit_id_pk ON fruits (fruit_id);
+
+ALTER TABLE fruits
+    ADD ( CONSTRAINT fruit_id_pk PRIMARY KEY (fruit_id));
+
+-----------------------------------------------
+CREATE TABLE orchards
+    (orchard_id NUMBER CONSTRAINT orchard_id_nn NOT NULL,
+    orchard_name VARCHAR2(25),
+    region VARCHAR2(25));
+
+CREATE UNIQUE INDEX orchard_id_pk ON orchards (orchard_id);
+
+ALTER TABLE orchards
+    ADD (CONSTRAINT orchard_id_pk PRIMARY KEY (orchard_id));
+
+-----------------------------------------------
+CREATE TABLE trees
+    (tree_id NUMBER CONSTRAINT  tree_id_nn NOT NULL,
+    tree_name VARCHAR2(40),
+    tree_type VARCHAR2(40),
+    fruit_id NUMBER,
+    orchard_id NUMBER,
+    CONSTRAINT tree_c_id_pk PRIMARY KEY (tree_id)) ORGANIZATION INDEX; 
+
+ALTER TABLE trees
+    ADD (CONSTRAINT trees_frt_fk
+    FOREIGN KEY (fruit_id)
+    REFERENCES fruits(fruit_id));
+ALTER TABLE trees
+    ADD (CONSTRAINT trees_orch_fk
+    FOREIGN KEY (orchard_id)
+    REFERENCES orchards(orchard_id));

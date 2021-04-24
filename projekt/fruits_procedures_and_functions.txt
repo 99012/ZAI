@@ -1,0 +1,112 @@
+CREATE SEQUENCE fruits_seq;
+-- fruits package specification
+CREATE OR REPLACE PACKAGE gen_fruits
+IS
+    PROCEDURE insert_fruit
+        (p_fruit_id NUMBER, p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER);
+    
+    PROCEDURE delete_fruit
+        (p_fruit_id NUMBER);
+    
+    FUNCTION get_name
+        (p_fruit_id NUMBER)
+        RETURN VARCHAR2;
+    
+    FUNCTION get_kcal
+        (p_fruit_id NUMBER)
+        RETURN NUMBER;
+    
+    FUNCTION get_price
+        (p_fruit_id NUMBER)
+        RETURN NUMBER;
+END;
+
+-- fruits package body
+CREATE OR REPLACE PACKAGE BODY gen_fruits
+IS
+    PROCEDURE insert_fruit
+        (p_fruit_id NUMBER, p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER)
+    IS
+    BEGIN
+        INSERT INTO fruits
+        VALUES(p_fruit_id, p_name, p_kcal, p_price);
+        COMMIT;
+        
+        EXCEPTION
+            WHEN OTHERS THEN
+                dbms_output.put_line(SQLCODE);
+                dbms_output.put_line(SQLERRM);
+    END;
+    
+    PROCEDURE delete_fruit
+        (p_fruit_id NUMBER)
+    IS
+    BEGIN
+        DELETE FROM fruits WHERE fruit_id=p_fruit_id;
+        COMMIT;
+        
+        EXCEPTION
+            WHEN OTHERS THEN
+                dbms_output.put_line(SQLCODE);
+                dbms_output.put_line(SQLERRM);
+    END;
+    
+    FUNCTION get_name
+        (p_fruit_id NUMBER)
+    RETURN VARCHAR2
+    IS
+        v_name fruits.fruit_name%TYPE;
+    BEGIN
+        SELECT fruit_name INTO v_name FROM fruits
+        WHERE fruit_id=p_fruit_id;
+        RETURN v_name;
+        
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN NULL;
+    END;
+    
+    FUNCTION get_kcal
+        (p_fruit_id NUMBER)
+    RETURN NUMBER
+    IS
+        v_kcal fruits.kcal%TYPE;
+    BEGIN
+        SELECT kcal INTO v_kcal FROM fruits
+        WHERE fruit_id=p_fruit_id;
+        RETURN v_kcal;
+        
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN NULL;
+    END;
+    
+    FUNCTION get_price
+        (p_fruit_id NUMBER)
+    RETURN NUMBER
+    IS
+        v_price fruits.price_kg%TYPE;
+    BEGIN
+        SELECT price_kg INTO v_price FROM fruits
+        WHERE fruit_id=p_fruit_id;
+        RETURN v_price;
+        
+        EXCEPTION
+            WHEN OTHERS THEN
+                RETURN NULL;
+    END;
+END;
+--
+EXECUTE gen_fruits.insert_fruit(8, 'Mango', 60, 19);
+
+SELECT * FROM fruits;
+
+EXECUTE gen_fruits.delete_fruit(8);
+
+SELECT * FROM fruits;
+
+SELECT gen_fruits.get_name(2) FROM dual;
+
+SELECT gen_fruits.get_kcal(2) FROM dual;
+
+SELECT gen_fruits.get_price(2) FROM dual;

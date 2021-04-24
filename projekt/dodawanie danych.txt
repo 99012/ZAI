@@ -1,0 +1,41 @@
+--fruits table
+INSERT INTO fruits VALUES
+    (1, 'Jablko', 52.1, 4.99);
+INSERT INTO fruits VALUES
+    (2, 'Gruszka', 57.1, 7.75);
+INSERT INTO fruits VALUES
+    (3, 'Wisnia', 50, 7.49);
+INSERT INTO fruits VALUES
+    (4, 'Czeresnia', 50, 12.99);
+INSERT INTO fruits VALUES
+    (5, 'Sliwka', 240.4, 1.70);
+INSERT INTO fruits VALUES
+    (6, 'Brzoskwinia', 39.4, 4.99);
+INSERT INTO fruits VALUES
+    (7, 'Morela', 48, 7.50);
+    
+SELECT * FROM fruits;
+--
+--orchards table
+INSERT INTO orchards VALUES
+    (1, 'Sad 1', 'Pomorze');
+INSERT INTO orchards VALUES
+    (2, 'Sad 2', 'Warmia');
+
+SELECT * FROM orchards;
+--
+--trees table
+INSERT INTO trees VALUES
+    (1, 'Jablko', 'lisciaste',1, 1);
+INSERT INTO trees VALUES
+    (2, 'Gruszka', 'lisciaste',2, 1);
+INSERT INTO trees VALUES
+    (3, 'Wisnia', 'lisciaste',3, 1);
+INSERT INTO trees VALUES
+    (4, 'Czeresnia', 'lisciaste',4, 2);
+INSERT INTO trees VALUES
+    (5, 'Morela', 'lisciaste',7, 2);
+INSERT INTO trees VALUES
+    (6, 'Wisnia', 'lisciaste',3, 2);
+
+SELECT * FROM trees;
