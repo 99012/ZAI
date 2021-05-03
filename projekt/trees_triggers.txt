@@ -1,0 +1,128 @@
+--triggers audit table for fruits
+DROP TABLE trees_audit;
+CREATE TABLE trees_audit
+    (tree_id NUMBER,
+    old_tree_name VARCHAR2(40),
+	old_tree_type VARCHAR2(40),
+    old_fruit_id NUMBER,
+    old_orchard_id NUMBER,
+    new_tree_name VARCHAR2(40),
+	new_tree_type VARCHAR2(40),
+    new_fruit_id NUMBER,
+    new_orchard_id NUMBER,
+    user_updating VARCHAR2(100),
+    operation_type VARCHAR2(20),
+    operation_date DATE);
+
+CREATE OR REPLACE TRIGGER trees_audit_triggers
+    AFTER INSERT OR UPDATE OR DELETE
+    ON trees
+    FOR EACH ROW
+BEGIN
+    IF inserting THEN
+        INSERT INTO trees_audit (tree_id,
+            old_tree_name, old_tree_type, old_fruit_id, old_orchard_id, 
+            new_tree_name, new_tree_type, new_fruit_id, new_orchard_id,
+            user_updating, operation_type, operation_date)
+        VALUES (:new.tree_id, 
+            NULL, NULL, NULL, NULL,
+            :new.tree_name, :new.tree_type, :new.fruit_id, :new.orchard_id,
+            USER, 'Inserting', SYSDATE);
+    END IF;
+    
+    IF updating THEN
+        INSERT INTO trees_audit (tree_id,
+            old_tree_name, old_tree_type, old_fruit_id, old_orchard_id, 
+            new_tree_name, new_tree_type, new_fruit_id, new_orchard_id,
+            user_updating, operation_type, operation_date)
+        VALUES (:old.tree_id,
+            :old.tree_name, :old.tree_type, :old.fruit_id, :old.orchard_id,
+            :new.tree_name, :new.tree_type, :new.fruit_id, :new.orchard_id,
+            USER, 'Updating', SYSDATE);
+    END IF;
+    
+    IF deleting THEN     
+        INSERT INTO trees_audit (tree_id,
+            old_tree_name, old_tree_type, old_fruit_id, old_orchard_id, 
+            new_tree_name, new_tree_type, new_fruit_id, new_orchard_id,
+            user_updating, operation_type, operation_date)
+        VALUES (:old.tree_id,
+            :old.tree_name, :old.tree_type, :old.fruit_id, :old.orchard_id,
+            NULL, NULL, NULL, NULL,
+            USER, 'Deleting', SYSDATE);
+    END IF;
+END;
+
+-- trigger testing
+
+INSERT INTO trees (tree_id, tree_name, tree_type, fruit_id, orchard_id) 
+    VALUES (7, 'Drzewo 1', 'Soczyste', 1, 1);
+
+SELECT * FROM trees_audit WHERE tree_id = 7;
+
+UPDATE trees SET tree_name='Drzewko 1', tree_type='Lisciaste'
+    WHERE tree_id = 7;
+
+SELECT * FROM trees_audit WHERE tree_id = 7;
+
+DELETE FROM trees WHERE tree_id = 7;
+
+SELECT * FROM trees_audit WHERE tree_id = 7;
+
+-------------------------------------------------------------
+CREATE OR REPLACE TRIGGER trees_update_trigger
+    BEFORE UPDATE ON trees
+    FOR EACH ROW
+BEGIN
+    IF :new.tree_name IS NULL THEN
+        :new.tree_name :=:old.tree_name;
+    END IF;
+    
+    IF :new.tree_type IS NULL THEN
+        :new.tree_type :=:old.tree_type;
+    END IF;
+    
+    IF :new.fruit_id IS NULL THEN
+        :new.fruit_id :=:old.fruit_id;
+    END IF;
+    
+    IF :new.orchard_id IS NULL THEN
+        :new.orchard_id :=:old.orchard_id;
+    END IF;
+END;
+
+EXECUTE gen_trees.insert_tree('test', 'iglaste' , 1, 1);
+
+SELECT * FROM trees;
+
+EXECUTE gen_trees.UPDATE_tree(7, NULL, NULL, 2, NULL);
+
+SELECT * FROM trees;
+
+SELECT * FROM trees_audit;
+
+-------------------------------------------------------------
+CREATE OR REPLACE TRIGGER orchards_update_trigger
+    BEFORE UPDATE ON orchards
+    FOR EACH ROW
+BEGIN
+    IF :new.orchard_name IS NULL THEN
+        :new.orchard_name :=:old.orchard_name;
+    END IF;
+    
+    IF :new.region IS NULL THEN
+        :new.region :=:old.region;
+    END IF;
+END;
+
+EXECUTE gen_orchards.insert_orchard('test', 'Miedzylesie');
+
+SELECT * FROM orchards;
+
+EXECUTE gen_orchards.update_orchard(3, 'testowa zmiana', NULL);
+
+SELECT * FROM orchards;
+
+SELECT * FROM orchards_audit;
+
+SELECT * FROM fruits_audit;

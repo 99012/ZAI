@@ -1,0 +1,87 @@
+--triggers audit table for fruits
+DROP TABLE fruits_audit;
+CREATE TABLE fruits_audit
+    (fruit_id NUMBER,
+    old_fruit_name VARCHAR2(25),
+	old_kcal NUMBER(8,2),
+	old_price_kg NUMBER(8,2),
+    new_fruit_name VARCHAR2(25),
+	new_kcal NUMBER(8,2),
+	new_price_kg NUMBER(8,2),
+    user_updating VARCHAR2(100),
+    operation_type VARCHAR2(20),
+    operation_date DATE);
+
+CREATE OR REPLACE TRIGGER fruits_audit_triggers
+    AFTER INSERT OR UPDATE OR DELETE
+    ON fruits
+    FOR EACH ROW
+BEGIN
+    IF inserting THEN
+        INSERT INTO fruits_audit (fruit_id, old_fruit_name, old_kcal, old_price_kg, 
+            new_fruit_name, new_kcal, new_price_kg, 
+            user_updating, operation_type, operation_date)
+        VALUES (:new.fruit_id, NULL, NULL, NULL, :new.fruit_name, :new.kcal,
+            :new.price_kg, USER, 'Inserting', SYSDATE);
+    END IF;
+    
+    IF updating THEN
+        INSERT INTO fruits_audit (fruit_id, old_fruit_name, old_kcal, old_price_kg, 
+            new_fruit_name, new_kcal, new_price_kg, 
+            user_updating, operation_type, operation_date)
+        VALUES (:old.fruit_id, :old.fruit_name, :old.kcal, :old.price_kg, 
+            :new.fruit_name, :new.kcal, :new.price_kg,
+            USER, 'Updating', SYSDATE);
+    END IF;
+    
+    IF deleting THEN     
+        INSERT INTO fruits_audit (fruit_id, old_fruit_name, old_kcal, old_price_kg, 
+            new_fruit_name, new_kcal, new_price_kg, 
+            user_updating, operation_type, operation_date)
+        VALUES (:old.fruit_id, :old.fruit_name, :old.kcal, :old.price_kg, 
+            NULL, NULL, NULL,
+            USER, 'Deleting', SYSDATE);
+    END IF;
+END;
+
+-- trigger testing
+
+INSERT INTO fruits (fruit_id, fruit_name, kcal, price_kg) 
+    VALUES (9, 'Arbuz', 20, 4);
+
+SELECT * FROM fruits_audit WHERE fruit_id = 9;
+
+UPDATE fruits SET kcal=kcal+5, price_kg=price_kg+2
+    WHERE fruit_id = 9;
+
+SELECT * FROM fruits_audit WHERE fruit_id = 9;
+
+DELETE FROM fruits WHERE fruit_id = 9;
+
+SELECT * FROM fruits_audit WHERE fruit_id = 9;
+
+-------------------------------------------------------------
+CREATE OR REPLACE TRIGGER fruits_update_trigger
+    BEFORE UPDATE ON fruits
+    FOR EACH ROW
+BEGIN
+    IF :new.fruit_name IS NULL THEN
+        :new.fruit_name :=:old.fruit_name;
+    END IF;
+    
+    IF :new.kcal IS NULL THEN
+        :new.kcal :=:old.kcal;
+    END IF;
+    
+    IF :new.price_kg IS NULL THEN
+        :new.price_kg :=:old.price_kg;
+    END IF;
+END;
+
+EXECUTE gen_fruits.insert_fruit('test', 10, 10);
+
+EXECUTE gen_fruits.UPDATE_FRUIT(9, 'test2', NULL, NULL);
+
+SELECT * FROM fruits;
+
+SELECT * FROM fruits_audit;

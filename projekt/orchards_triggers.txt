@@ -1,0 +1,60 @@
+--triggers audit table for fruits
+DROP TABLE orchards_audit;
+CREATE TABLE orchards_audit
+    (orchard_id NUMBER,
+    old_orchard_name VARCHAR2(25),
+	old__region VARCHAR2(25),
+    new_orchard_name VARCHAR2(25),
+	new_region VARCHAR2(25),
+    user_updating VARCHAR2(100),
+    operation_type VARCHAR2(20),
+    operation_date DATE);
+
+CREATE OR REPLACE TRIGGER orchards_audit_triggers
+    AFTER INSERT OR UPDATE OR DELETE
+    ON orchards
+    FOR EACH ROW
+BEGIN
+    IF inserting THEN
+        INSERT INTO orchards_audit (orchard_id, old_orchard_name, old__region, 
+            new_orchard_name, new_region,
+            user_updating, operation_type, operation_date)
+        VALUES (:new.orchard_id, NULL, NULL, 
+            :new.orchard_name, :new.region,
+            USER, 'Inserting', SYSDATE);
+    END IF;
+    
+    IF updating THEN
+        INSERT INTO orchards_audit (orchard_id, old_orchard_name, old__region, 
+            new_orchard_name, new_region,
+            user_updating, operation_type, operation_date)
+        VALUES (:old.orchard_id, :old.orchard_name, :old.region,
+            :new.orchard_name, :new.region,
+            USER, 'Updating', SYSDATE);
+    END IF;
+    
+    IF deleting THEN     
+        INSERT INTO orchards_audit (orchard_id, old_orchard_name, old__region, 
+            new_orchard_name, new_region,
+            user_updating, operation_type, operation_date)
+        VALUES (:old.orchard_id, :old.orchard_name, :old.region,
+            NULL, NULL,
+            USER, 'Deleting', SYSDATE);
+    END IF;
+END;
+
+-- trigger testing
+
+INSERT INTO orchards (orchard_id, orchard_name, region) 
+    VALUES (3, 'Sad 3', 'Suwalki');
+
+SELECT * FROM orchards_audit WHERE orchard_id = 3;
+
+UPDATE orchards SET orchard_name='Sad 33', region='Suwalki 2'
+    WHERE orchard_id = 3;
+
+SELECT * FROM orchards_audit WHERE orchard_id = 3;
+
+DELETE FROM orchards WHERE orchard_id = 3;
+
+SELECT * FROM orchards_audit WHERE orchard_id = 3;

@@ -3,7 +3,11 @@ CREATE SEQUENCE fruits_seq;
 CREATE OR REPLACE PACKAGE gen_fruits
 IS
     PROCEDURE insert_fruit
-        (p_fruit_id NUMBER, p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER);
+        (p_name VARCHAR2, p_kcal NUMBER DEFAULT 1, p_price NUMBER DEFAULT 1);
+    
+    PROCEDURE update_fruit
+        (p_id NUMBER,
+        p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER);
     
     PROCEDURE delete_fruit
         (p_fruit_id NUMBER);
@@ -25,14 +29,39 @@ END;
 CREATE OR REPLACE PACKAGE BODY gen_fruits
 IS
     PROCEDURE insert_fruit
-        (p_fruit_id NUMBER, p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER)
+        ( p_name VARCHAR2, p_kcal NUMBER DEFAULT 1, p_price NUMBER DEFAULT 1)
     IS
+        v_next_id NUMBER;
     BEGIN
+        SELECT MIN(fruit_id)+1 INTO v_next_id FROM 
+            (SELECT fruit_id, LEAD(fruit_id) OVER (ORDER BY fruit_id)AS next_id FROM fruits)
+            WHERE (next_id > fruit_id+1)
+            OR (next_id IS NULL);
         INSERT INTO fruits
-        VALUES(p_fruit_id, p_name, p_kcal, p_price);
+        VALUES(v_next_id, p_name, p_kcal, p_price);
         COMMIT;
         
         EXCEPTION
+            WHEN OTHERS THEN
+                dbms_output.put_line(SQLCODE);
+                dbms_output.put_line(SQLERRM);
+    END;
+    
+    PROCEDURE update_fruit
+        (p_id NUMBER,
+        p_name VARCHAR2, p_kcal NUMBER, p_price NUMBER)
+    IS
+        v_fruit_name fruits.fruit_name%TYPE;
+    BEGIN
+        SELECT fruit_name INTO v_fruit_name
+            FROM fruits WHERE fruit_id=p_id;
+        
+        UPDATE fruits SET fruit_name = p_name, kcal = p_kcal, price_kg = p_kcal
+            WHERE fruit_id = p_id;
+        COMMIT;
+        EXCEPTION 
+            WHEN NO_DATA_FOUND THEN
+                dbms_output.put_line('No data found for fruit ID '||p_id);
             WHEN OTHERS THEN
                 dbms_output.put_line(SQLCODE);
                 dbms_output.put_line(SQLERRM);
@@ -97,7 +126,15 @@ IS
     END;
 END;
 --
-EXECUTE gen_fruits.insert_fruit(8, 'Mango', 60, 19);
+EXECUTE gen_fruits.insert_fruit('test1');
+
+SELECT * FROM fruits;
+
+EXECUTE gen_fruits.delete_fruit(9);
+
+SELECT * FROM fruits;
+
+EXECUTE gen_fruits.insert_fruit('Mango', 60, 19);
 
 SELECT * FROM fruits;
 
@@ -110,3 +147,11 @@ SELECT gen_fruits.get_name(2) FROM dual;
 SELECT gen_fruits.get_kcal(2) FROM dual;
 
 SELECT gen_fruits.get_price(2) FROM dual;
+
+SELECT * FROM fruits_audit;
+
+EXECUTE gen_fruits.UPDATE_FRUIT(5, 'Sliwka', 240, 2);
+
+SELECT * FROM fruits;
+
+SELECT * FROM fruits_audit;
